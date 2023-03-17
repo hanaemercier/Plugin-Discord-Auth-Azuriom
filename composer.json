@@ -1,0 +1,21 @@
+{
+    "name": "azuriom/discord-auth",
+    "type": "azuriom-plugin",
+    "description": "Plugin for Azuriom",
+    "autoload": {
+        "psr-4": {
+            "Azuriom\\Plugin\\DiscordAuth\\": "src/"
+        }
+    },
+    "require": {
+        "martinbean/socialite-discord-provider": "1.2"
+    },
+    "replace": {
+        "guzzlehttp/guzzle": "*",
+        "psr/log": "*",
+        "symfony/http-foundation": "*",
+        "laravel/socialite": "*",
+        "illuminate/support": "*",
+        "facade/ignition-contracts": "*"
+    }
+}
