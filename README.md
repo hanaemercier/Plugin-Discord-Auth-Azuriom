@@ -26,3 +26,6 @@ You can also use the admin panel to add a navigation button, but it may be a bit
 ###  Register a discord app and fill credentials
 * Register a Discord application here https://discord.com/developers/applications
 * Go to plugin's settings and fill client_id and client_secret
+
+### Update depedencies
+Go to `plugin/discord-auth` and run `composer update`
