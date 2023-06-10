@@ -19,22 +19,47 @@ use Laravel\Socialite\Facades\Socialite;
 
 class DiscordAuthHomeController extends Controller
 {
-
     private $guild;
 
-    public function __construct() {
+    public function __construct()
+    {
         config(["services.discord.client_id" => setting('discord-auth.client_id', '')]);
         config(["services.discord.client_secret" => setting('discord-auth.client_secret', '')]);
         config(["services.discord.redirect_id" => "/discord-auth/callback"]);
         $this->guild = setting('discord-auth.guild', '');
     }
 
-    public function username() {
+    public function guild(Request $request)
+    {
+        $isController = $request->session()->get('socialite_callback') === 'from_controller';
+    
+        session()->put('socialite_callback', 'from_controller');
+    
+        if (!$isController || Auth::check()) {
+            return redirect('/');
+        }
+    
+        return view('discord-auth::guild');
+    }
+
+    public function username()
+    {
+        if (!Auth::check()) {
+            return redirect('/');
+        }
+
+        $user = Auth::user();
+        $discord = Discord::where('user_id', $user->id)->first();
+
+        if ($user->name !== $discord->discord_id) {
+            return redirect('/');
+        }
+
         return view('discord-auth::username', ['conditions' => setting('conditions')]);
     }
 
-    public function registerUsername(Request $request) {
-
+    public function registerUsername(Request $request)
+    {
         $request->validate([
             'name' => ['required', 'string', 'max:25', 'unique:users', new Username(), new GameAuth()]
         ]);
@@ -53,17 +78,24 @@ class DiscordAuthHomeController extends Controller
      */
     public function redirectToProvider()
     {
+        if (Auth::check()) {
+            return redirect('/');
+        }
+
+        session()->put('socialite_callback', 'from_controller');
+
         return Socialite::driver('discord')
             ->scopes('guilds')->redirect();
     }
 
-    private function hasRightGuild($guilds) {
-
+    private function hasRightGuild($guilds)
+    {
         if ($this->guild == '') {
             return true;
         }
 
         $found = false;
+
         foreach ($guilds as $guild) {
             if ($guild['id'] == $this->guild) {
                 return true;
@@ -82,72 +114,91 @@ class DiscordAuthHomeController extends Controller
      */
     public function handleProviderCallback(Request $request)
     {
-
-        $user = Socialite::driver('discord')->user();
-
-        $guilds = Http::withToken($user->token)
-            ->get('https://discord.com/api/users/@me/guilds')
-            ->throw()
-            ->json();
-
-        if (!$this->hasRightGuild($guilds)) {
-            return view('discord-auth::guild');
+        $isController = $request->session()->get('socialite_callback') === 'from_controller';
+    
+        if (!$isController) {
+            return redirect('/');
         }
-
-        $discordId = $user->user['id'];
-        $email = $user->user['email'];
-        $created = false;
-
-        $discords = Discord::with('user')->where('discord_id', $discordId)->orderByDesc('id')->get();
-
-        if ($discords->isEmpty() || $discords->first()->user->is_deleted) { // Aucun compte discord n'existe
-
-            if (Auth::guest() && User::where('email', $email)->exists()) {
-                $redirect = redirect();
-                $redirect->setIntendedUrl(route('discord-auth.login'));
-                return $redirect
-                    ->route('login')
-                    ->with('error', trans('discord-auth::messages.email_already_exists'));
-            } elseif (Auth::user()) {
-                $userToLogin = Auth::user();
-            } else {
-                $userToLogin = User::forceCreate([
-                    'name' => $discordId,
-                    'email' => $email,
-                    'password' => Hash::make(Str::random(32)),
-                    'last_login_ip' => $request->ip(),
-                    'last_login_at' => now(),
-                ]);
-
-                $created = true;
+    
+        if (Auth::check()) {
+            return redirect('/');
+        }
+    
+        try {
+            $user = Socialite::driver('discord')->user();
+    
+            $guilds = Http::withToken($user->token)
+                ->get('https://discord.com/api/users/@me/guilds')
+                ->throw()
+                ->json();
+    
+            if (!$this->hasRightGuild($guilds)) {
+                return redirect()->route('discord-auth.guild');
             }
-
-            $discord = new Discord();
-            $discord->discord_id = $discordId;
-            $discord->user_id = $userToLogin->id;
-            $discord->save();
-
-        } else {
-            $userToLogin = $discords->first()->user;
+    
+            $discordId = $user->user['id'];
+            $email = $user->user['email'];
+            $created = false;
+        
+            $discords = Discord::with('user')
+                ->where('discord_id', $discordId)
+                ->orderByDesc('id')
+                ->get();
+        
+            if ($discords->isEmpty() || $discords->first()->user->is_deleted) {
+        
+                if (Auth::guest() && User::where('email', $email)->exists()) {
+                    $redirect = redirect();
+                    $redirect->setIntendedUrl(route('discord-auth.login'));
+                    return $redirect
+                        ->route('login')
+                        ->with('error', trans('discord-auth::messages.email_already_exists'));
+                } elseif (Auth::user()) {
+                    $userToLogin = Auth::user();
+                } else {
+                    $userToLogin = User::forceCreate([
+                        'name' => $discordId,
+                        'email' => $email,
+                        'password' => Hash::make(Str::random(32)),
+                        'last_login_ip' => $request->ip(),
+                        'last_login_at' => now(),
+                    ]);
+        
+                    $created = true;
+                }
+        
+                $discord = new Discord();
+                $discord->discord_id = $discordId;
+                $discord->user_id = $userToLogin->id;
+                $discord->save();
+            } else {
+                $userToLogin = $discords->first()->user;
+            }
+        
+            if ($userToLogin->isBanned()) {
+                throw ValidationException::withMessages([
+                    'email' => trans('auth.suspended'),
+                ])->redirectTo(URL::route('login'));
+            }
+        
+            if (setting('maintenance-status', false) && !$userToLogin->can('maintenance.access')) {
+                return $this->sendMaintenanceResponse($request);
+            }
+        
+            $this->guard()->login($userToLogin, true);
+        
+            if ($created) {
+                return redirect()->route('discord-auth.username');
+            }
+        
+            if ($userToLogin->name === $discordId) {
+                return redirect()->route('discord-auth.username');
+            }
+        
+            return redirect()->route('home');
+        } catch (\Exception $e) {
+            return redirect('/');
         }
-
-        if ($userToLogin->isBanned()) {
-            throw ValidationException::withMessages([
-                'email' => trans('auth.suspended'),
-            ])->redirectTo(URL::route('login'));
-        }
-
-        if (setting('maintenance-status', false) && ! $userToLogin->can('maintenance.access')) {
-            return $this->sendMaintenanceResponse($request);
-        }
-
-        $this->guard()->login($userToLogin, true);
-
-        if ($created) {
-            return redirect()->route('discord-auth.username');
-        }
-
-        return redirect()->route('home');
     }
 
     /**

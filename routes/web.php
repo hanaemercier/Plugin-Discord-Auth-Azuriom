@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', [DiscordAuthHomeController::class, 'redirectToProvider'])->name('login');
-Route::get('/callback', [DiscordAuthHomeController::class, 'handleProviderCallback']);
+Route::get('/callback', [DiscordAuthHomeController::class, 'handleProviderCallback'])->name('callback');
+Route::get('/guild', [DiscordAuthHomeController::class, 'guild'])->name('guild');
 Route::post('/register-username', [DiscordAuthHomeController::class, 'registerUsername'])->name('register-username');
 Route::get('/username', [DiscordAuthHomeController::class, 'username'])->name('username');

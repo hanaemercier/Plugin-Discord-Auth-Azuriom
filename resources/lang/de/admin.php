@@ -18,5 +18,6 @@ return [
         'client_id' => 'Client ID',
         'client_secret' => 'Client Secret',
         'guild' => 'Guild ID (leer lassen, wenn du dem Benutzer erlauben möchtest, sich anzumelden, auch wenn er nicht auf deinem Gildenserver vorhanden ist)',
+        'guild_invite' => 'Einladungslink von Ihrem Discord-Server (leer lassen, wenn du dem Benutzer erlauben möchtest, sich anzumelden, auch wenn er nicht auf deinem Gildenserver vorhanden ist)',
     ],
 ];

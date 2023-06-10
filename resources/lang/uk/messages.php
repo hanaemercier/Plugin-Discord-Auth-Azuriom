@@ -1,7 +1,10 @@
 <?php
 
 return [
-    'guild_must_join' => 'Ви повинні приєднатися до нашого сервера Discord перед тим, як зареєструватися через Discord.',
+    'guild_info' => 'Інформація',
+    'guild_must_join' => 'Ви повинні приєднатися до нашого Discord-серверу перед входом/реєстрацією за допомогою Discord',
+    'guild_invite' => 'Приєднатися до сервера Discord',
+    'guild_verify_join' => 'Я приєднався до сервера Discord',
     'login_via_discord' => 'Вхід через Discord',
     'plugin_name' => 'discord-auth',
     'register-username' => 'Завершити реєстрацію',

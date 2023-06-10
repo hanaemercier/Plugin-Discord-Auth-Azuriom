@@ -13,7 +13,7 @@
                         <form method="POST" action="{{ route('discord-auth.register-username') }}" id="captcha-form">
                             @csrf
 
-                            <div class="form-group row">
+                            <div class="form-group row mb-3">
                                 <label for="name" class="col-md-4 col-form-label text-md-right">{{ trans('auth.name') }}</label>
 
                                 <div class="col-md-6">

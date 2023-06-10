@@ -67,10 +67,6 @@ class DiscordAuthServiceProvider extends BasePluginServiceProvider
      */
     public function boot()
     {
-
-        Blade::if('hasDiscordLinked', $this->bladeHasDiscordLinked());
-        Blade::if('hasNotDiscordLinked', $this->bladeHasNotDiscordLinked());
-
         Socialite::extend('discord', function (Application $app) {
             $config = $app->make('config')->get('services.discord');
 
@@ -141,29 +137,5 @@ class DiscordAuthServiceProvider extends BasePluginServiceProvider
         return [
             //
         ];
-    }
-
-    private function bladeHasDiscordLinked()
-    {
-        return function () {
-
-            if (Auth::guest()) {
-                return false;
-            }
-
-            return Discord::where('user_id', Auth::user()->id)->exists();
-        };
-    }
-
-    private function bladeHasNotDiscordLinked()
-    {
-        return function () {
-
-            if (Auth::guest()) {
-                return true;
-            }
-
-            return !Discord::where('user_id', Auth::user()->id)->exists();
-        };
     }
 }

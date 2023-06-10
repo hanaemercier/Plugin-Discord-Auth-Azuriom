@@ -29,16 +29,22 @@
                             <div class="row my-3">
                                 <div class="col-md-6 form-group">
                                     <label for="client_id">{{ trans('discord-auth::admin.settings.client_id') }}</label>
-                                    <input class="form-control" id="host" placeholder="client_id" name="client_id" value="{{ $client_id }}" required="required">
+                                    <input class="form-control" id="host" placeholder="Client ID" name="client_id" value="{{ $client_id }}" required="required">
                                 </div>
                                 <div class="col-md-6 form-group">
                                     <label for="client_secret">{{ trans('discord-auth::admin.settings.client_secret') }}</label>
-                                    <input class="form-control" placeholder="client_secret" type="password" id="client_secret" name="client_secret" value="{{ $client_secret }}" required="required">
+                                    <input class="form-control" placeholder="Client Secret" type="password" id="client_secret" name="client_secret" value="{{ $client_secret }}" required="required">
                                 </div>
                             </div>
-                            <div class="my-3 form-group">
-                                <label for="guild">{{ trans('discord-auth::admin.settings.guild') }}</label>
-                                <input class="form-control" id="guild" name="guild" value="{{ $guild }}" placeholder="guild">
+                            <div class="row my-3">
+                                <div class="col-md-6 form-group">
+                                    <label for="guild">{{ trans('discord-auth::admin.settings.guild') }}</label>
+                                    <input class="form-control" id="guild" name="guild" value="{{ $guild }}" placeholder="Server ID">
+                                </div>
+                                <div class="col-md-6 form-group">
+                                    <label for="guild_invite">{{ trans('discord-auth::admin.settings.guild_invite') }}</label>
+                                    <input class="form-control" id="guild_invite" name="guild_invite" value="{{ $guild_invite }}" placeholder="https://discord.gg/example">
+                                </div>
                             </div>
                             <div class="my-3">
                                 {{ trans('discord-auth::admin.settings.info') }}

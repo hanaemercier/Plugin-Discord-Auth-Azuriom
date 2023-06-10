@@ -1,7 +1,10 @@
 <?php
 
 return [
-    'guild_must_join' => 'You must join our Discord server before registering with Discord.',
+    'guild_info' => 'Informations',
+    'guild_must_join' => 'You must join our Discord server before login/registering with Discord',
+    'guild_invite' => 'Join the discord server',
+    'guild_verify_join' => 'I joined the Discord server',
     'login_via_discord' => 'Login with Discord',
     'plugin_name' => 'discord-auth',
     'register-username' => 'End your registration',

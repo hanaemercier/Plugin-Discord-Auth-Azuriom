@@ -17,6 +17,7 @@ return [
 
         'client_id' => 'Client ID',
         'client_secret' => 'Client Secret',
-        'guild' => 'Guild ID (let empty if you want to allow user to login even if he is not present on your guild server',
+        'guild' => 'Server ID (let empty if you want to allow user to login even if he is not present on your discord server)',
+        'guild_invite' => 'Invitation link (let empty if you want to allow user to login even if he is not present on your discord server)',
     ],
 ];

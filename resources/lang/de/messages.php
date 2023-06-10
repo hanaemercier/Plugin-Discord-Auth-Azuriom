@@ -1,7 +1,10 @@
 <?php
 
 return [
-    'guild_must_join' => 'Du musst unserem Discord Server beitreten, bevor du dich mit Discord registrieren kannst.',
+    'guild_info' => 'Informationen',
+    'guild_must_join' => 'Du musst unserem Discord-Server beitreten, bevor du dich mit Discord einloggen/registrieren kannst',
+    'guild_invite' => 'Dem Discord-Server beitreten',
+    'guild_verify_join' => "Ich bin dem Discord-Server beigetreten",
     'login_via_discord' => 'Mit Discord einloggen Discord',
     'plugin_name' => 'discord-auth',
     'register-username' => 'Registrierung abschließen',
