@@ -2,7 +2,7 @@
     "id": "discord-auth",
     "name": "Discord Auth",
     "description": "Plugin for Azuriom",
-    "version": "1.3.6",
+    "version": "1.3.7",
     "url": "https:\/\/github.com\/naekaa444\/Plugin-Discord-Auth-Azuriom",
     "authors": [
         "Naekaa & magrigry"
