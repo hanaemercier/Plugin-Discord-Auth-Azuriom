@@ -19,5 +19,6 @@ return [
         'client_secret' => 'Client Secret',
         'guild' => 'Server ID (let empty if you want to allow user to login even if he is not present on your discord server)',
         'guild_invite' => 'Invitation link (let empty if you want to allow user to login even if he is not present on your discord server)',
+        'avatar' => "Have the Discord avatar on the Azuriom account (updates at each login to the website)",
     ],
 ];
