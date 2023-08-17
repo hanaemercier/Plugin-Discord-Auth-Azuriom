@@ -19,5 +19,6 @@ return [
         'client_secret' => 'Client Secret',
         'guild' => 'Identifiant de votre guild (laisser vide pour autoriser des membres qui ne sont pas de votre guild à se connecter)',
         'guild_invite' => "Lien d'invitation de votre serveur discord (laisser vide pour autoriser des membres qui ne sont pas de votre guild à se connecter)",
+        'avatar' => "Avoir l'avatar discord sur le compte Azuriom (se met à jour à chaque connexion sur le site)",
     ],
 ];
