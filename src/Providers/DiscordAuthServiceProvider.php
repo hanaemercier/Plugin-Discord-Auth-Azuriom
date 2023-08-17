@@ -10,8 +10,6 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Str;
-use Laravel\Socialite\Facades\Socialite;
-use MartinBean\Laravel\Socialite\DiscordProvider;
 
 class DiscordAuthServiceProvider extends BasePluginServiceProvider
 {
@@ -57,7 +55,6 @@ class DiscordAuthServiceProvider extends BasePluginServiceProvider
     public function register()
     {
         $this->registerMiddlewares();
-        require_once __DIR__.'/../../vendor/autoload.php';
     }
 
     /**
@@ -67,20 +64,6 @@ class DiscordAuthServiceProvider extends BasePluginServiceProvider
      */
     public function boot()
     {
-        Socialite::extend('discord', function (Application $app) {
-            $config = $app->make('config')->get('services.discord');
-
-            $redirect = value(Arr::get($config, 'redirect'));
-
-            return new DiscordProvider (
-                $app->make('request'),
-                $config['client_id'],
-                $config['client_secret'],
-                Str::startsWith($redirect, '/') ? $app->make('url')->to($redirect) : $redirect,
-                Arr::get($config, 'guzzle', [])
-            );
-        });
-
         $this->loadViews();
 
         $this->loadTranslations();
