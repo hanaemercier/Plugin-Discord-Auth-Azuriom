@@ -46,12 +46,20 @@
                                     <input class="form-control" id="guild_invite" name="guild_invite" value="{{ $guild_invite }}" placeholder="https://discord.gg/example">
                                 </div>
                             </div>
+                            <div class="col-md-12 my-3 form-group">
+                                <input type="hidden" name="avatar" value="0">
+                                <input type="checkbox" class="form-check-input" id="avatar" name="avatar" value="1" @if(setting('discord-auth.avatar') === 'on') checked @endif>
+                                <label class="form-check-label" for="avatar">
+                                    {{ trans('discord-auth::admin.settings.avatar') }}
+                                </label>
+                            </div>
                             <div class="my-3">
                                 {{ trans('discord-auth::admin.settings.info') }}
                                 <a class="m-0 font-weight-bold text-primary" target="_blank" rel="noopener noreferrer">
                                     {{ url('/discord-auth/callback') }}
                                 </a>  
                             </div>
+
                             <button type="submit" class="btn btn-primary">
                                 <i class="bi bi-save"></i> {{ trans('messages.actions.save') }}
                             </button>
