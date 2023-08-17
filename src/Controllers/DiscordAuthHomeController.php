@@ -254,6 +254,9 @@ class DiscordAuthHomeController extends Controller
                   if (setting('discord-auth.avatar') === "on") {
                       $userToLogin->avatar = "https://cdn.discordapp.com/avatars/" . $discordId . "/" . $user['avatar'] . "?size=1024";
                       $userToLogin->save();
+                  } else {
+                      $userToLogin->avatar = NULL;
+                      $userToLogin->save();
                   }
                   
                   return redirect()->route('home');
