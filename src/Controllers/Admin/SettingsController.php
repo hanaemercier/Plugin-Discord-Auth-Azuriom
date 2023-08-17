@@ -20,6 +20,7 @@ class SettingsController extends Controller
             'client_secret' => setting('discord-auth.client_secret', ''),
             'guild' => setting('discord-auth.guild', ''),
             'guild_invite' => setting('discord-auth.guild_invite', ''),
+            'avatar' => setting('discord-auth.avatar', ''),
         ]);
     }
 
@@ -30,13 +31,17 @@ class SettingsController extends Controller
             'client_secret' => ['required', 'string', 'max:255'],
             'guild' => ['nullable', 'string', 'max:255'],
             'guild_invite' => ['nullable', 'string', 'max:255'],
+            'avatar' => ['nullable', 'string', 'max:255'],
         ]);
+
+        $avatar = $validated['avatar'] === '1' ? 'on' : 'off';
 
         Setting::updateSettings([
             'discord-auth.client_id' => $validated['client_id'],
             'discord-auth.client_secret' => $validated['client_secret'],
             'discord-auth.guild' => $validated['guild'],
             'discord-auth.guild_invite' => $validated['guild_invite'],
+            'discord-auth.avatar' => $avatar,
         ]);
 
         return redirect()->route('discord-auth.admin.settings')->with('success', trans('admin.settings.updated'));
