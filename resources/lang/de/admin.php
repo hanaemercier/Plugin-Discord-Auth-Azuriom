@@ -19,5 +19,6 @@ return [
         'client_secret' => 'Client Secret',
         'guild' => 'Guild ID (leer lassen, wenn du dem Benutzer erlauben möchtest, sich anzumelden, auch wenn er nicht auf deinem Gildenserver vorhanden ist)',
         'guild_invite' => 'Einladungslink von Ihrem Discord-Server (leer lassen, wenn du dem Benutzer erlauben möchtest, sich anzumelden, auch wenn er nicht auf deinem Gildenserver vorhanden ist)',
+        'avatar' => "Das Discord-Avatar auf dem Azuriom-Konto haben (aktualisiert sich bei jeder Anmeldung auf der Website)",
     ],
 ];
