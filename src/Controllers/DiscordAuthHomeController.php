@@ -29,13 +29,13 @@ class DiscordAuthHomeController extends Controller
     public function guild(Request $request)
     {
         $isController = $request->session()->get('socialite_callback') === 'from_controller';
-    
+
         session()->put('socialite_callback', 'from_controller');
-    
+
         if (!$isController || Auth::check()) {
             return redirect('/');
         }
-    
+
         return view('discord-auth::guild');
     }
 
@@ -58,7 +58,7 @@ class DiscordAuthHomeController extends Controller
     public function registerUsername(Request $request)
     {
         $request->validate([
-            'name' => ['required', 'string', 'max:25', 'unique:users', new Username(), new GameAuth()]
+            'name' => ['required', 'string', 'max:25', 'unique:users', new Username(), new GameAuth()],
         ]);
 
         $user = Auth::user();
@@ -81,11 +81,14 @@ class DiscordAuthHomeController extends Controller
 
         Session::put('socialite_callback', 'from_controller');
 
-        $discordAuthUrl = "https://discord.com/oauth2/authorize" .
-                          "?client_id=" . setting('discord-auth.client_id') .
-                          "&redirect_uri=" . urlencode(config('app.url') . "/discord-auth/callback") .
-                          "&response_type=code" .
-                          "&scope=identify%20email%20guilds";
+        $discordAuthUrl =
+            "https://discord.com/oauth2/authorize" .
+            "?client_id=" .
+            setting('discord-auth.client_id') .
+            "&redirect_uri=" .
+            urlencode(config('app.url') . "/discord-auth/callback") .
+            "&response_type=code" .
+            "&scope=identify%20email%20guilds";
 
         return redirect($discordAuthUrl);
     }
@@ -95,8 +98,6 @@ class DiscordAuthHomeController extends Controller
         if ($this->guild == '') {
             return true;
         }
-
-        $found = false;
 
         foreach ($guilds as $guild) {
             if ($guild['id'] == $this->guild) {
@@ -117,149 +118,136 @@ class DiscordAuthHomeController extends Controller
     public function handleProviderCallback(Request $request)
     {
         $isController = $request->session()->get('socialite_callback') === 'from_controller';
-     
+
         if (!$isController) {
             return redirect('/');
         }
-    
+
         if (Auth::check()) {
             return redirect('/');
         }
-    
+
         try {
-          $API_ENDPOINT = 'https://discord.com/api/v10';
-      
-          $clientId = setting('discord-auth.client_id');
-          $clientSecret = setting('discord-auth.client_secret');
-      
-          $redirectUrl = urlencode(route('discord-auth.callback'));
-          $redirectUrl = str_replace('%2F', '/', $redirectUrl);
-          $redirectUrl = str_replace('%3A', ':', $redirectUrl);
-      
-          $ch = curl_init();
-          curl_setopt($ch, CURLOPT_URL, $API_ENDPOINT . '/oauth2/token');
-          curl_setopt($ch, CURLOPT_POST, 1);
-          curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([
-              'client_id' => $clientId,
-              'client_secret' => $clientSecret,
-              'grant_type' => 'authorization_code',
-              'code' => $request->input('code'),
-              'redirect_uri' => $redirectUrl,
-              'scope' => 'identify email guilds'
-          ]));
-          curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-          $response1 = curl_exec($ch);
-          curl_close($ch);
-      
-          $response = json_decode($response1, true);
-      
-          if (!isset($response['access_token'])) {
-              return redirect()->route('discord-auth.login');
-          }
-      
-          $accessToken = $response['access_token'];
-      
-          $userUrl = $API_ENDPOINT . '/users/@me';
-          $userHeaders = [
-              'Authorization: Bearer ' . $accessToken
-          ];
-      
-          $ch = curl_init();
-          curl_setopt($ch, CURLOPT_URL, $userUrl);
-          curl_setopt($ch, CURLOPT_HTTPHEADER, $userHeaders);
-          curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-          $userResponse = curl_exec($ch);
-          curl_close($ch);
-      
-          $user = json_decode($userResponse, true);
-      
-          $guildsUrl = $API_ENDPOINT . '/users/@me/guilds';
-          $guildsHeaders = [
-              'Authorization: Bearer ' . $accessToken
-          ];
-      
-          $ch = curl_init();
-          curl_setopt($ch, CURLOPT_URL, $guildsUrl);
-          curl_setopt($ch, CURLOPT_HTTPHEADER, $guildsHeaders);
-          curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-          $guildsResponse = curl_exec($ch);
-          curl_close($ch);
-      
-          $guilds = json_decode($guildsResponse, true);
-      
-          if (!$this->hasRightGuild($guilds)) {
-            return redirect()->route('discord-auth.guild');
-          }
-            
-          $discordId = $user['id'];
-          $email = $user['email'];
-          $created = false;
-      
-          $discords = Discord::with('user')
-                      ->where('discord_id', $discordId)
-                      ->orderByDesc('id')
-                      ->get();
-          
-                  if ($discords->isEmpty() || $discords->first()->user->is_deleted) {
-          
-                      if (Auth::guest() && User::where('email', $email)->exists()) {
-                          $redirect = redirect();
-                          $redirect->setIntendedUrl(route('discord-auth.login'));
-                          return $redirect
-                              ->route('login')
-                              ->with('error', trans('discord-auth::messages.email_already_exists'));
-                      } elseif (Auth::user()) {
-                          $userToLogin = Auth::user();
-                      } else {
-                          $userToLogin = User::forceCreate([
-                              'name' => $discordId,
-                              'email' => $email,
-                              'password' => Hash::make(Str::random(32)),
-                              'last_login_ip' => $request->ip(),
-                              'last_login_at' => now(),
-                          ]);
-                          
-                          if (setting('discord-auth.avatar') === "on") {
-                              $userToLogin->avatar = "https://cdn.discordapp.com/avatars/" . $discordId . "/" . $user['avatar'] . "?size=1024";
-                              $userToLogin->save();
-                          }
-                          
-                          $created = true;
-                      }
-          
-                      $discord = new Discord();
-                      $discord->discord_id = $discordId;
-                      $discord->user_id = $userToLogin->id;
-                      $discord->save();
-                  } else {
-                      $userToLogin = $discords->first()->user;
-                  }
-      
-                  if ($userToLogin->isBanned()) {
-                      throw ValidationException::withMessages([
-                          'email' => trans('auth.suspended'),
-                      ])->redirectTo(URL::route('login'));
-                  }
-          
-                  if (setting('maintenance-status', false) && !$userToLogin->can('maintenance.access')) {
-                      return $this->sendMaintenanceResponse($request);
-                  }
-            
-                  $this->guard()->login($userToLogin, true);
-                  
-                  if ($userToLogin->name === $discordId) {
-                      return redirect()->route('discord-auth.username');
-                  }
-                  
-                  if (setting('discord-auth.avatar') === "on") {
-                      $userToLogin->avatar = "https://cdn.discordapp.com/avatars/" . $discordId . "/" . $user['avatar'] . "?size=1024";
-                      $userToLogin->save();
-                  } else {
-                      $userToLogin->avatar = NULL;
-                      $userToLogin->save();
-                  }
-                  
-                  return redirect()->route('home');
+            $API_ENDPOINT = 'https://discord.com/api/v10';
+
+            $clientId = setting('discord-auth.client_id');
+            $clientSecret = setting('discord-auth.client_secret');
+
+            $redirectUrl = urlencode(route('discord-auth.callback'));
+            $redirectUrl = str_replace('%2F', '/', $redirectUrl);
+            $redirectUrl = str_replace('%3A', ':', $redirectUrl);
+
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $API_ENDPOINT . '/oauth2/token');
+            curl_setopt($ch, CURLOPT_POST, 1);
+            curl_setopt(
+                $ch,
+                CURLOPT_POSTFIELDS,
+                http_build_query([
+                    'client_id' => $clientId,
+                    'client_secret' => $clientSecret,
+                    'grant_type' => 'authorization_code',
+                    'code' => $request->input('code'),
+                    'redirect_uri' => $redirectUrl,
+                    'scope' => 'identify email guilds',
+                ])
+            );
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            $response1 = curl_exec($ch);
+            curl_close($ch);
+
+            $response = json_decode($response1, true);
+
+            if (!isset($response['access_token'])) {
+                return redirect()->route('discord-auth.login');
+            }
+
+            $accessToken = $response['access_token'];
+
+            $userUrl = $API_ENDPOINT . '/users/@me';
+            $userHeaders = ['Authorization: Bearer ' . $accessToken];
+
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $userUrl);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, $userHeaders);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            $userResponse = curl_exec($ch);
+            curl_close($ch);
+
+            $user = json_decode($userResponse, true);
+
+            $guildsUrl = $API_ENDPOINT . '/users/@me/guilds';
+            $guildsHeaders = ['Authorization: Bearer ' . $accessToken];
+
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $guildsUrl);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, $guildsHeaders);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            $guildsResponse = curl_exec($ch);
+            curl_close($ch);
+
+            $guilds = json_decode($guildsResponse, true);
+
+            if (!$this->hasRightGuild($guilds)) {
+                return redirect()->route('discord-auth.guild');
+            }
+
+            $discordId = $user['id'];
+            $email = $user['email'];
+
+            $discords = Discord::with('user')
+                ->where('discord_id', $discordId)
+                ->orderByDesc('id')
+                ->get();
+
+            if ($discords->isEmpty() || $discords->first()->user->is_deleted) {
+                if (User::where('email', $email)->exists()) {
+                    $discord = new Discord();
+                    $discord->discord_id = $discordId;
+                    $discord->user_id = User::where('email', $email)->value('id');
+                    $discord->save();
+
+                    Auth::loginUsingId($discord->user_id);
+                } else {
+                    $userToLogin = User::forceCreate([
+                        'name' => $discordId,
+                        'email' => $email,
+                        'password' => Hash::make(Str::random(32)),
+                        'last_login_ip' => $request->ip(),
+                        'last_login_at' => now(),
+                    ]);
+
+                    if (setting('discord-auth.avatar') === "on") {
+                        $userToLogin->avatar = "https://cdn.discordapp.com/avatars/" . $discordId . "/" . $user['avatar'] . "?size=1024";
+                        $userToLogin->save();
+                    }
+
+                    $discord = new Discord();
+                    $discord->discord_id = $discordId;
+                    $discord->user_id = $userToLogin->id;
+                    $discord->save();
+
+                    Auth::loginUsingId($userToLogin->id);
+                }
+            } else {
+                $userToLogin = $discords->first()->user;
+            }
+
+            $this->guard()->login($userToLogin, true);
+
+            if ($userToLogin->name === $discordId) {
+                return redirect()->route('discord-auth.username');
+            }
+
+            if (setting('discord-auth.avatar') === "on") {
+                $userToLogin->avatar = "https://cdn.discordapp.com/avatars/" . $discordId . "/" . $user['avatar'] . "?size=1024";
+                $userToLogin->save();
+            } else {
+                $userToLogin->avatar = null;
+                $userToLogin->save();
+            }
+
+            return redirect()->route('home');
         } catch (\Exception $e) {
             return redirect('/');
         }
@@ -281,24 +269,7 @@ class DiscordAuthHomeController extends Controller
             return $response;
         }
 
-        return $request->wantsJson()
-            ? new JsonResponse([], 204)
-            : redirect()->intended($this->redirectPath());
-    }
-
-    /**
-     * Get the maintenance response.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\RedirectResponse
-     */
-    protected function sendMaintenanceResponse(Request $request)
-    {
-        if ($request->expectsJson()) {
-            return response()->json(['message' => trans('auth.maintenance')], 503);
-        }
-
-        return redirect()->back()->with('error', trans('auth.maintenance'));
+        return $request->wantsJson() ? new JsonResponse([], 204) : redirect()->intended($this->redirectPath());
     }
 
     /**
