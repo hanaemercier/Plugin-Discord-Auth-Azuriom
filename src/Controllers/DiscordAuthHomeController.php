@@ -71,7 +71,7 @@ class DiscordAuthHomeController extends Controller
     /**
      * Redirect the user to the Discord authentication page.
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
      */
     public function redirectToProvider()
     {
@@ -86,7 +86,7 @@ class DiscordAuthHomeController extends Controller
             "?client_id=" .
             setting('discord-auth.client_id') .
             "&redirect_uri=" .
-            urlencode(config('app.url') . "/discord-auth/callback") .
+            urlencode(setting('discord-auth.url') . "/discord-auth/callback") .
             "&response_type=code" .
             "&scope=identify%20email%20guilds";
 
@@ -217,7 +217,7 @@ class DiscordAuthHomeController extends Controller
                         'last_login_at' => now(),
                     ]);
 
-                    if (setting('discord-auth.avatar') === "on") {
+                    if (setting('discord-auth.avatar') === "on" && $user['avatar'] != null) {
                         $userToLogin->avatar = "https://cdn.discordapp.com/avatars/" . $discordId . "/" . $user['avatar'] . "?size=1024";
                         $userToLogin->save();
                     }
@@ -239,7 +239,7 @@ class DiscordAuthHomeController extends Controller
                 return redirect()->route('discord-auth.username');
             }
 
-            if (setting('discord-auth.avatar') === "on") {
+            if (setting('discord-auth.avatar') === "on" && $user['avatar'] != null) {
                 $userToLogin->avatar = "https://cdn.discordapp.com/avatars/" . $discordId . "/" . $user['avatar'] . "?size=1024";
                 $userToLogin->save();
             } else {

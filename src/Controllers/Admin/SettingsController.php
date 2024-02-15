@@ -42,6 +42,7 @@ class SettingsController extends Controller
             'discord-auth.guild' => $validated['guild'],
             'discord-auth.guild_invite' => $validated['guild_invite'],
             'discord-auth.avatar' => $avatar,
+            'discord-auth.url' => url()->to('/'),
         ]);
 
         return redirect()->route('discord-auth.admin.settings')->with('success', trans('admin.settings.updated'));
