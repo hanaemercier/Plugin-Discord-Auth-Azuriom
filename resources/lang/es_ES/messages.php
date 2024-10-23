@@ -1,12 +1,12 @@
 <?php
 
 return [
-    'guild_info' => 'Informations',
-    'guild_must_join' => 'You must join our Discord server before login/registering with Discord',
-    'guild_invite' => 'Join the discord server',
-    'guild_verify_join' => 'I joined the Discord server',
-    'login_via_discord' => 'Login with Discord',
+    'guild_info' => 'Información',
+    'guild_must_join' => 'Debes unirte a nuestro servidor Discord antes de iniciar sesión/registrarte mediante Discord',
+    'guild_invite' => 'Unirse al servidor de Discord',
+    'guild_verify_join' => 'Me he unido al servidor de Discord',
+    'login_via_discord' => 'Iniciar sesión via Discord',
     'plugin_name' => 'discord-auth',
-    'register-username' => 'End your registration',
-    'email_already_exists' => 'An account already exists with the same email than the discord account you tried to login with. Connect to your account with your email and password to associate your discord account.'
+    'register-username' => 'Acabar el registro',
+    'email_already_exists' => 'Ya existe una cuenta con el mismo correo electrónico que la cuenta de Discord con la que has intentado iniciar sesión. Conéctate a tu cuenta con tu correo electrónico y contraseña para asociar tu cuenta de Discord.'
 ];
